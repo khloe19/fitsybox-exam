@@ -1,22 +1,23 @@
 import React from 'react';
 
 var values;
+var orders=[];
 
 class App extends React.Component {
-
-  constructor(props) {
-      super(props)
-      this.state = { products: [],
-                     id: '',
-                     price: 0,
-                     totalAmout: 0,
-                     quantity: 0,
-                     orderAdded: false}  
-
-      this.handleProductChange = this.handleProductChange.bind(this);
+    constructor() {
+       super();
+       this.state = {
+          products: [],
+          amount:0,
+          quantity: 0,
+          id:'',
+          orders: [],
+          totalAmountOrder:0
+       }
       this.handleSubmit = this.handleSubmit.bind(this);
-      this.handleInputChange = this.handleInputChange.bind(this);
-    };
+      this.handleInputQty = this.handleInputQty.bind(this);
+      this.handleAddToOrder = this.handleAddToOrder.bind(this);
+    }
 
     componentDidMount(){
       // Retrieve products
@@ -24,7 +25,7 @@ class App extends React.Component {
     }
 
     fetchOptions(){
-      const apiUrl = 'http://localhost:3001/api/products'
+      const apiUrl = 'http://localhost:3001/api/products' 
       fetch(apiUrl, {
           method: "GET",
           headers: { 'Content-Type': ' application/json' }
@@ -35,75 +36,95 @@ class App extends React.Component {
          })
     }
 
-    // Product selection
-    handleProductChange(event) {
-      const selectedProduct = JSON.parse(event.target.value)
-      this.setState({          
-        id: selectedProduct.id,
-        price: selectedProduct.price,
-        totalAmout: this.state.quantity * selectedProduct.price 
-      })
+    handleInputQty(value) {
+       this.setState({quantity: value})
     }
 
-    // Quantity input
-    handleInputChange(event) {
-      let quantity = event.target.value 
-      this.setState({
-        quantity: quantity,
-        totalAmout: quantity * this.state.price
-      })
+    handleAddToOrder(value) {
+       this.setState({orders: value})
     }
-
+    
     // Create order
     handleSubmit() {
-      const data = [{product_id: this.state.id, 
-                    quantity: this.state.quantity}];
-
+      const data = this.state.orders.orders
       fetch('http://localhost:3001/api/orders', {
         method: 'POST',
         body: JSON.stringify(data),
         headers: {
             'Content-Type': 'application/json'
         }
-      }).then(response => {
+      }).then(response => {    
         if (response.status === 200) {
             this.setState({ orderAdded: true })
-            return response;
+            return response.json();
         } else {
          console.log('Something went wrong');
         }
-      }).catch(err => err);
+      }).then((data) => {console.log(data);
+         this.setState({totalAmountOrder: data.totalAmountOrder})
+      })
+   }
+
+    render() {
+       return (
+          <div>
+             <Header/>
+             <table>
+                <tbody>
+                   {this.state.products.map((product, i) => <TableRow key = {i} 
+                      data = {product} onInputQuantity={this.handleInputQty} onHandleToOrder={this.handleAddToOrder}/>)}
+                </tbody>
+             </table>
+             <button onClick={this.handleSubmit}>Create Order</button>
+             {this.state.orderAdded && <p>Your order make my day! Your total amount order is {this.state.totalAmountOrder}. Thank you. :)</p>} 
+          </div>
+       );
+    }
+ }
+ class Header extends React.Component {
+    render() {
+       return (
+          <div>
+             <h1>Fitsy Box</h1>
+          </div>
+       );
+    }
+ }
+ class TableRow extends React.Component {
+
+    constructor(props) {
+       super(props);
+       this.state = { amount: 0, quantity: 0, orders: []}       
+       this.handleInputChange = this.handleInputChange.bind(this);       
+       this.handleAddToOrder = this.handleAddToOrder.bind(this);       
+    }
+
+    handleInputChange(event){
+        this.setState({quantity: event.target.value})        
+        this.props.onInputQuantity(event.target.value)
+        this.setState({ amount: event.target.value * this.props.data.price })        
+    }
+
+    handleAddToOrder(){
+      orders.push({
+         product_id:this.props.data.id,
+         quantity:this.state.quantity
+      });     
+      this.props.onHandleToOrder({orders})
     }
 
     render() {
-      const { products } = this.state;
-
-      return (
-        <div>
-          <h1>FitsyBox Store</h1>
-          <div className="container">
-            <div className="dropdown">
-                <span>Choose a product: </span>
-                <select
-                    onChange={this.handleProductChange}>
-                    {products.map(product => <option key={product.id} value={JSON.stringify(product)}>{product.id}-{product.name}</option>)}
-                </select>              
-            </div>
-            <div className="quantity-text">
-                <span>Enter quantity: </span>
-                <input type="number" style={{paddingLeft: "5px"}} onChange={this.handleInputChange}/>
-            </div>
-            <div className="amountContainer">
-                <span>Total amount: </span>
-                <span className="amount">{this.state.totalAmout}</span>
-            </div>          
-            <button className="createOrder-btn" type="button" disabled={this.state.totalAmout === 0} onClick={this.handleSubmit}>
-                Create order
-            </button>
-            {this.state.orderAdded && <p>Your order make my day! Thank you. :)</p>}
-          </div>
-        </div>
-      )}
-};
-
+       return (
+          <tr>
+             <td>{this.props.data.id}</td>
+             <td>{this.props.data.name}</td>
+             <td>{this.props.data.price}</td>
+             <td><input type="number" onChange={this.handleInputChange}></input></td>
+             <td>{this.state.amount}</td>
+             <td><button onClick={this.handleAddToOrder}>Add to Order</button></td>
+          </tr>
+       );
+    }
+ }
+ 
 export default App;
