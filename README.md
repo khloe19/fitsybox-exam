@@ -11,13 +11,35 @@ There are two projects in the directory:
     This contains the API services created in NodeJS using Node express.
     
     APIs
-     - GET products
+     - GET products - 
         This service return the list of products
-     - POST products
+
+        Payload:
+        GET http://localhost:3001/api/products
+        
+     - POST products -
         This service add to the original list of products and return the new list
-     - POST orders
+
+        Payload:
+        POST http://localhost:3001/api/products
+        {
+          "id": "1",
+          "name": "description",
+          "price": 1 
+        }
+        
+     - POST orders - 
         This service post the list of orders with total of product per order and the total amount of all the orders
-    
+        
+        Payload:
+        POST http://localhost:3001/api/orders
+        [{"product_id":"1",
+          "quantity": 1
+          },
+          {"product_id": "2",
+            "quantity": 1
+          }]
+
     Run the api:
         npm install
         node index.js
