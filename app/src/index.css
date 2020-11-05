@@ -11,3 +11,22 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.container {
+  padding-left: 20px;
+}
+
+.amountContainer {
+  color: blue;
+  font-size: bold;
+  padding-bottom: 20px;
+}
+
+.amount {
+  padding-left: 5px;
+}
+
+.createOrder-btn {
+  padding: 10px;  
+}
+
