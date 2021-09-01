@@ -1,6 +1,6 @@
 var assert = require('assert');
 var sinon = require('sinon');
-const productModule = require('../src/modules/products/products');
+const productModule = require('../src/modules/products');
 
 
 describe('getProducts', () => {

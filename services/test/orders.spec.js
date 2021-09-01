@@ -1,6 +1,6 @@
 var assert = require('assert');
 var sinon = require('sinon');
-const orderModule = require('../src/modules/orders/orders');
+const orderModule = require('../src/modules/orders');
 
 describe('postOrder', () => {
   it('If post order - should return total order amount', async () => {

@@ -1,4 +1,4 @@
-const productsModule = require('../products/products');
+const productsModule = require('./products');
 
 exports.postOrder = async function(orders) {    
     const request_order = [];

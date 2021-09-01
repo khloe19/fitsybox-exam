@@ -12,19 +12,18 @@ class App extends React.Component {
           quantity: 0,
           id:'',
           orders: [],
-          totalAmountOrder:0
+          orderTotalAmount:0
        }
       this.handleSubmit = this.handleSubmit.bind(this);
-      this.handleInputQty = this.handleInputQty.bind(this);
-      this.handleAddToOrder = this.handleAddToOrder.bind(this);
+      this.updateQuantity = this.updateQuantity.bind(this);
+      this.addToOrder = this.addToOrder.bind(this);
     }
 
     componentDidMount(){
-      // Retrieve products
-      this.fetchOptions()
+      this.retrieveProducts()
     }
 
-    fetchOptions(){
+    retrieveProducts(){
       const apiUrl = 'http://localhost:3001/api/products' 
       fetch(apiUrl, {
           method: "GET",
@@ -36,12 +35,17 @@ class App extends React.Component {
          })
     }
 
-    handleInputQty(value) {
+    updateQuantity(value) {
        this.setState({quantity: value})
     }
 
-    handleAddToOrder(value) {
+    addToOrder(value) {
        this.setState({orders: value})
+       let calculatedAmount = 0;
+       value.orders.forEach(order => {
+          calculatedAmount += order.itemTotalAmount
+       });
+       this.setState({orderTotalAmount: calculatedAmount})
     }
     
     // Create order
@@ -60,8 +64,6 @@ class App extends React.Component {
         } else {
          console.log('Something went wrong');
         }
-      }).then((data) => {console.log(data);
-         this.setState({totalAmountOrder: data.totalAmountOrder})
       })
    }
 
@@ -69,14 +71,29 @@ class App extends React.Component {
        return (
           <div>
              <Header/>
-             <table>
+             <table id='orders'>
                 <tbody>
+                   <tr>
+                      <th>Id</th>
+                      <th>Product</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Total</th>
+                  </tr>
                    {this.state.products.map((product, i) => <TableRow key = {i} 
-                      data = {product} onInputQuantity={this.handleInputQty} onHandleToOrder={this.handleAddToOrder}/>)}
+                      data = {product} 
+                      onInputQuantity={this.updateQuantity} 
+                      onHandleToOrder={this.addToOrder}/>)}
                 </tbody>
              </table>
-             <button onClick={this.handleSubmit}>Create Order</button>
-             {this.state.orderAdded && <p>Your order make my day! Your total amount order is {this.state.totalAmountOrder}. Thank you. :)</p>} 
+             <div id='container'>
+                <p>Total amount: ${this.state.orderTotalAmount}</p>
+            </div>
+             <div id='container'>
+               <button onClick={this.handleSubmit}>Create Order</button>
+               <button onClick={() => window.location.reload(false)}>Reset Order</button>
+             </div>
+             {this.state.orderAdded && <p>Awesome, order placed. Thank you!</p>} 
           </div>
        );
     }
@@ -96,20 +113,27 @@ class App extends React.Component {
        super(props);
        this.state = { amount: 0, quantity: 0, orders: []}       
        this.handleInputChange = this.handleInputChange.bind(this);       
-       this.handleAddToOrder = this.handleAddToOrder.bind(this);       
+       this.addToOrder = this.addToOrder.bind(this);       
     }
 
     handleInputChange(event){
         this.setState({quantity: event.target.value})        
         this.props.onInputQuantity(event.target.value)
-        this.setState({ amount: event.target.value * this.props.data.price })        
+        this.setState({ amount: event.target.value * this.props.data.price })     
     }
 
-    handleAddToOrder(){
-      orders.push({
-         product_id:this.props.data.id,
-         quantity:this.state.quantity
-      });     
+    addToOrder(){
+      const productOrder = orders.find(order => order.product_id === this.props.data.id)
+      if (productOrder) {
+         productOrder.quantity = this.state.quantity;
+         productOrder.itemTotalAmount = this.state.amount;    
+      } else { 
+         orders.push({
+            product_id: this.props.data.id,
+            quantity: this.state.quantity,
+            itemTotalAmount: this.state.amount
+         })
+      };   
       this.props.onHandleToOrder({orders})
     }
 
@@ -118,10 +142,12 @@ class App extends React.Component {
           <tr>
              <td>{this.props.data.id}</td>
              <td>{this.props.data.name}</td>
-             <td>{this.props.data.price}</td>
-             <td><input type="number" onChange={this.handleInputChange}></input></td>
-             <td>{this.state.amount}</td>
-             <td><button onClick={this.handleAddToOrder}>Add to Order</button></td>
+             <td>${this.props.data.price}</td>
+             <td><input type="number" 
+               onChange={this.handleInputChange} 
+               onBlur={this.addToOrder}>
+            </input></td>
+             <td>${this.state.amount}</td>
           </tr>
        );
     }
